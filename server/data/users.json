@@ -1,0 +1,23 @@
+[
+  {
+    "_id": "6ae440229ffd736eb9243c83",
+    "name": "System Admin",
+    "email": "admin@example.com",
+    "passwordHash": "$2b$10$m14xgl2IdvK8.y4nzAKIMOYxHYjVIkFxDjn8yI3cI7sq9iscuPlty",
+    "role": "admin",
+    "phone": "9999999999",
+    "isActive": true,
+    "createdAt": "2026-10-30T06:58:42.577Z",
+    "updatedAt": "2026-10-30T06:58:42.577Z"
+  },
+  {
+    "_id": "6ae442eee8f85d6cb2d92e96",
+    "name": "Abhinash Maddheshiya",
+    "email": "absmadd@gmail.com",
+    "passwordHash": "$2b$10$8hVjk/LwXhACnC.8xv.s1u6n7cQAD.dRoKvNotqNWY9i/sQff/v.G",
+    "phone": "",
+    "createdAt": "2026-10-30T07:10:38.750Z",
+    "updatedAt": "2026-10-30T07:19:55.786Z",
+    "isActive": true
+  }
+]
