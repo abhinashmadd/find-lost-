@@ -66,3 +66,4 @@ Before merging any code into `staging` or `main`:
 2. The 20 official test cases in `TESTING.md` pass without regression.
 3. No `.env` or sensitive credentials staged.
 4. Decision Log (`docs/DECISIONS.md`) and Assumptions (`docs/ASSUMPTIONS.md`) updated if technical contracts changed.
+
