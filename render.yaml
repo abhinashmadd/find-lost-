@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: find-lost
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: USE_LOCAL_DB
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_NAME
+        value: System Admin
+      - key: ADMIN_EMAIL
+        value: admin@example.com
+      - key: ADMIN_PASSWORD
+        value: Admin@1234

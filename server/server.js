@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config();
@@ -18,11 +19,11 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 // Apply global rate limiting to all requests
 app.use(apiLimiter);
 
-// Restrict CORS strictly to CLIENT_URL
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+// Restrict CORS to CLIENT_URL if provided, or allow dynamic origin
+const allowedOrigin = process.env.CLIENT_URL;
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: allowedOrigin ? [allowedOrigin, "http://localhost:5173"] : true,
     credentials: true,
   })
 );
@@ -43,6 +44,18 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/items", require("./routes/items"));
 app.use("/api/claims", require("./routes/claims"));
 app.use("/api/admin", require("./routes/admin"));
+
+// Serve static client build if available (production full-stack deployment)
+const clientDistPath = path.join(__dirname, "../client/dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.use((req, res, next) => {
+    if (req.method === "GET" && !req.originalUrl.startsWith("/api")) {
+      return res.sendFile(path.join(clientDistPath, "index.html"));
+    }
+    next();
+  });
+}
 
 // Catch 404 for undefined routes
 app.use((req, res) => {
