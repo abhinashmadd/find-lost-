@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import api from "../services/api";
+import itemService from "../services/itemService";
 import Alert from "../components/Alert";
 
 export default function ReportItem() {
@@ -90,7 +90,7 @@ export default function ReportItem() {
         data.append("image", imageFile);
       }
 
-      await api.post("/items", data);
+      await itemService.createItem(data);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Could not save the item");

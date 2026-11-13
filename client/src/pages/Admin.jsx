@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import api from "../services/api";
+import adminService from "../services/adminService";
+import itemService from "../services/itemService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
@@ -19,13 +20,13 @@ export default function Admin() {
       setLoading(true);
       setError("");
 
-      const [itemsRes, usersRes] = await Promise.all([
-        api.get("/admin/items"),
-        api.get("/admin/users"),
+      const [itemsData, usersData] = await Promise.all([
+        adminService.getAllItems(),
+        adminService.getUsers(),
       ]);
 
-      setItems(itemsRes.data || []);
-      setUsers(usersRes.data || []);
+      setItems(itemsData || []);
+      setUsers(usersData || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load admin data");
     } finally {
@@ -43,7 +44,7 @@ export default function Admin() {
     if (!confirmed) return;
 
     try {
-      await api.delete(`/items/${itemId}`);
+      await itemService.deleteItem(itemId);
       setSuccess("Report deleted successfully by admin.");
       setItems((prev) => prev.filter((item) => item._id !== itemId));
     } catch (err) {
@@ -57,8 +58,8 @@ export default function Admin() {
     if (!confirmed) return;
 
     try {
-      const res = await api.patch(`/admin/users/${userId}/deactivate`);
-      setSuccess(res.data.message || "User deactivated successfully.");
+      const res = await adminService.deactivateUser(userId);
+      setSuccess(res.message || "User deactivated successfully.");
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, isActive: false } : u))
       );
@@ -73,8 +74,8 @@ export default function Admin() {
     if (!confirmed) return;
 
     try {
-      const res = await api.patch(`/admin/users/${userId}/activate`);
-      setSuccess(res.data.message || "User activated successfully.");
+      const res = await adminService.activateUser(userId);
+      setSuccess(res.message || "User activated successfully.");
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, isActive: true } : u))
       );

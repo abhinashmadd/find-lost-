@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import api from "../services/api";
+import authService from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -18,8 +18,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await api.get("/auth/me");
-        setUser(response.data);
+        const userData = await authService.getMe();
+        setUser(userData);
       } catch (error) {
         // Token is invalid or expired
         localStorage.removeItem("token");
@@ -35,18 +35,18 @@ export const AuthProvider = ({ children }) => {
 
   // Login handler
   const login = async (email, password) => {
-    const response = await api.post("/auth/login", { email, password });
-    const { token: receivedToken, user: receivedUser } = response.data;
+    const data = await authService.login(email, password);
+    const { token: receivedToken, user: receivedUser } = data;
     localStorage.setItem("token", receivedToken);
     setToken(receivedToken);
     setUser(receivedUser);
-    return response.data;
+    return data;
   };
 
   // Register handler
   const register = async (userData) => {
-    const response = await api.post("/auth/register", userData);
-    return response.data;
+    const data = await authService.register(userData);
+    return data;
   };
 
   // Logout handler

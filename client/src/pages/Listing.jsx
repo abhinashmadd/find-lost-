@@ -1,22 +1,16 @@
-import React, { useState, useEffect } from "react";
-import api from "../services/api";
+import React, { useState } from "react";
 import ItemCard from "../components/ItemCard";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import useDebounce from "../hooks/useDebounce";
+import useItems from "../hooks/useItems";
 
 export default function Listing() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  // Search & filter state
+  // Filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
 
   const categories = [
     "Electronics",
@@ -29,49 +23,27 @@ export default function Listing() {
     "Other",
   ];
 
-  // 500 ms debounce for search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to first page on search query change
-    }, 500);
+  // Decoupled debouncing via custom hook
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  // Fetch items whenever search, type, category, or page changes
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const params = new URLSearchParams();
-        params.append("status", "open");
-        params.append("page", page);
-        params.append("limit", "12");
-
-        if (debouncedSearch.trim()) params.append("q", debouncedSearch.trim());
-        if (selectedType) params.append("type", selectedType);
-        if (selectedCategory) params.append("category", selectedCategory);
-
-        const response = await api.get(`/items?${params.toString()}`);
-        setItems(response.data.items || []);
-        setTotalPages(response.data.pages || 1);
-        setTotalItems(response.data.total || 0);
-      } catch (err) {
-        setError(err.response?.data?.message || "Error loading items");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchItems();
-  }, [debouncedSearch, selectedType, selectedCategory, page]);
+  // Decoupled items query via custom hook
+  const {
+    items,
+    totalItems,
+    totalPages,
+    loading,
+    error,
+  } = useItems({
+    q: debouncedSearch,
+    type: selectedType,
+    category: selectedCategory,
+    status: "open",
+    page,
+    limit: 12,
+  });
 
   const handleResetFilters = () => {
     setSearchTerm("");
-    setDebouncedSearch("");
     setSelectedType("");
     setSelectedCategory("");
     setPage(1);
@@ -93,7 +65,10 @@ export default function Listing() {
             type="text"
             placeholder="Search by title, description or location..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="search-input"
           />
         </div>
@@ -182,4 +157,3 @@ export default function Listing() {
     </div>
   );
 }
-

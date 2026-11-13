@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import api from "../services/api";
+import itemService from "../services/itemService";
+import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
@@ -22,14 +23,18 @@ export default function Dashboard() {
       setLoading(true);
       setError("");
 
-      // Fetch user's reported items
-      const itemsRes = await api.get(`/items?reportedBy=${user.id}&status=all&limit=100`);
-      setMyReports(itemsRes.data.items || []);
+      // Fetch user's reported items via itemService
+      const itemsData = await itemService.listItems({
+        reportedBy: user.id,
+        status: "all",
+        limit: 100,
+      });
+      setMyReports(itemsData.items || []);
 
-      // Fetch user's claims made and received
-      const claimsRes = await api.get("/claims/mine");
-      setClaimsMade(claimsRes.data.made || []);
-      setClaimsReceived(claimsRes.data.received || []);
+      // Fetch user's claims made and received via claimService
+      const claimsData = await claimService.getMyClaims();
+      setClaimsMade(claimsData.made || []);
+      setClaimsReceived(claimsData.received || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load dashboard data");
     } finally {
@@ -43,13 +48,13 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Handle report deletion
+  // Handle report deletion via itemService
   const handleDeleteReport = async (itemId) => {
     const confirm = window.confirm("Are you sure you want to delete this report?");
     if (!confirm) return;
 
     try {
-      await api.delete(`/items/${itemId}`);
+      await itemService.deleteItem(itemId);
       setSuccess("Report deleted successfully.");
       setMyReports((prev) => prev.filter((item) => item._id !== itemId));
     } catch (err) {
@@ -57,13 +62,13 @@ export default function Dashboard() {
     }
   };
 
-  // Handle claim decision (Approve or Reject)
+  // Handle claim decision (Approve or Reject) via claimService
   const handleDecideClaim = async (claimId, decision) => {
     const confirm = window.confirm(`Are you sure you want to ${decision} this claim?`);
     if (!confirm) return;
 
     try {
-      const res = await api.patch(`/claims/${claimId}`, { decision });
+      await claimService.decideClaim(claimId, decision);
       setSuccess(`Claim has been ${decision} successfully.`);
       // Refresh claims data to update status and reveal contact info
       fetchData();

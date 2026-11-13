@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import api from "../services/api";
+import itemService from "../services/itemService";
+import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
@@ -36,14 +37,14 @@ export default function ItemDetails() {
   const fetchItem = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/items/${id}`);
-      setItem(res.data);
+      const data = await itemService.getItemById(id);
+      setItem(data);
       setEditForm({
-        title: res.data.title,
-        description: res.data.description,
-        category: res.data.category,
-        location: res.data.location,
-        status: res.data.status,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        location: data.location,
+        status: data.status,
       });
     } catch (err) {
       setError(err.response?.data?.message || "Item not found");
@@ -69,7 +70,7 @@ export default function ItemDetails() {
 
     try {
       setSubmittingClaim(true);
-      await api.post(`/items/${id}/claims`, {
+      await claimService.createClaim(id, {
         message: claimMessage,
         proofDetails,
       });
@@ -89,7 +90,7 @@ export default function ItemDetails() {
     if (!confirmed) return;
 
     try {
-      await api.delete(`/items/${id}`);
+      await itemService.deleteItem(id);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Could not delete item.");
@@ -100,8 +101,8 @@ export default function ItemDetails() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.put(`/items/${id}`, editForm);
-      setItem(res.data);
+      const updated = await itemService.updateItem(id, editForm);
+      setItem(updated);
       setIsEditing(false);
       setSuccess("Item details updated successfully.");
     } catch (err) {
