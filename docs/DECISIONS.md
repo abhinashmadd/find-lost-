@@ -18,3 +18,9 @@ This document records every major technical decision, its context, justification
 - **Decision**: Implemented Proxy wrappers on Mongoose models (`User`, `Item`, `Claim`) that gracefully route queries to local JSON files (`server/data/*.json`) when MongoDB is unreachable.
 - **Impact**: Zero-dependency local setup without compromising Mongoose model compatibility in production.
 
+#### DEC-003: Client-Side Service & Hook Abstraction Layer
+- **Date**: 2026-11-13
+- **Context**: UI components previously invoked axios directly via `api.js` and mixed HTTP query construction, pagination state, and debounce timers with view rendering.
+- **Decision**: Introduced a dedicated domain service layer (`authService`, `itemService`, `claimService`, `adminService`) and custom reusable hooks (`useDebounce`, `useItems`).
+- **Impact**: UI components are decoupled from REST endpoints, improving testability, modularity, and adherence to rule E4 and Phase 2 architecture refactoring requirements.
+
