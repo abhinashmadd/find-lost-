@@ -1,6 +1,8 @@
 services:
+  # Production Service (Deploys automatically from 'main' branch)
   - type: web
     name: find-lost
+    branch: main
     env: node
     plan: free
     buildCommand: npm run build
@@ -19,4 +21,27 @@ services:
         value: admin@example.com
       - key: ADMIN_PASSWORD
         value: Admin@1234
+
+  # Staging Service (Deploys automatically from 'staging' branch)
+  - type: web
+    name: find-lost-staging
+    branch: staging
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: USE_LOCAL_DB
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_NAME
+        value: Staging Admin
+      - key: ADMIN_EMAIL
+        value: staging-admin@example.com
+      - key: ADMIN_PASSWORD
+        value: Staging@1234
 

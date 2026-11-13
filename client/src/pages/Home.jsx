@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api";
+import itemService from "../services/itemService";
 import ItemCard from "../components/ItemCard";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
@@ -15,8 +15,8 @@ export default function Home() {
     const fetchRecentItems = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/items?status=open&limit=6");
-        setRecentItems(response.data.items || []);
+        const data = await itemService.listItems({ status: "open", limit: 6 });
+        setRecentItems(data.items || []);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load recent items");
       } finally {
@@ -80,4 +80,3 @@ export default function Home() {
     </div>
   );
 }
-
