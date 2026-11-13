@@ -30,7 +30,11 @@ const claimSchema = new mongoose.Schema(
       default: "pending",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 const MongooseClaim = mongoose.models.Claim || mongoose.model("Claim", claimSchema);

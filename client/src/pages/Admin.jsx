@@ -4,6 +4,8 @@ import itemService from "../services/itemService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import { ITEM_TYPES, ITEM_STATUS, USER_ROLES } from "../constants";
+import { formatDate } from "../utils/formatters";
 
 export default function Admin() {
   const { user: currentUser } = useAuth();
@@ -138,19 +140,19 @@ export default function Admin() {
                       <strong>{item.title}</strong>
                     </td>
                     <td>
-                      <span className={`badge ${item.type === "lost" ? "badge-lost" : "badge-found"}`}>
+                      <span className={`badge ${item.type === ITEM_TYPES.LOST ? "badge-lost" : "badge-found"}`}>
                         {item.type}
                       </span>
                     </td>
                     <td>{item.category}</td>
                     <td>{item.location}</td>
                     <td>
-                      <span className={`badge ${item.status === "returned" ? "badge-returned" : "badge-open"}`}>
+                      <span className={`badge ${item.status === ITEM_STATUS.RETURNED ? "badge-returned" : "badge-open"}`}>
                         {item.status}
                       </span>
                     </td>
                     <td>{item.reportedBy ? `${item.reportedBy.name} (${item.reportedBy.email})` : "N/A"}</td>
-                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                    <td>{formatDate(item.createdAt)}</td>
                     <td>
                       <button
                         onClick={() => handleDeleteItem(item._id)}
@@ -184,7 +186,7 @@ export default function Admin() {
               </thead>
               <tbody>
                 {users.map((u) => {
-                  const isCurrentAdmin = u._id === currentUser?.id;
+                  const isCurrentAdmin = u._id === currentUser?.id || u._id === currentUser?._id;
                   return (
                     <tr key={u._id}>
                       <td>
@@ -192,7 +194,7 @@ export default function Admin() {
                       </td>
                       <td>{u.email}</td>
                       <td>
-                        <span className={`badge ${u.role === "admin" ? "badge-admin" : "badge-user"}`}>
+                        <span className={`badge ${u.role === USER_ROLES.ADMIN ? "badge-admin" : "badge-user"}`}>
                           {u.role}
                         </span>
                       </td>
@@ -201,9 +203,9 @@ export default function Admin() {
                           {u.isActive ? "Active" : "Deactivated"}
                         </span>
                       </td>
-                      <td>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td>{formatDate(u.createdAt)}</td>
                       <td>
-                        {isCurrentAdmin || u.role === "admin" ? (
+                        {isCurrentAdmin || u.role === USER_ROLES.ADMIN ? (
                           <span className="text-muted">{isCurrentAdmin ? "(You)" : "(Admin)"}</span>
                         ) : u.isActive ? (
                           <button

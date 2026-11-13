@@ -5,6 +5,9 @@ import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import { ITEM_TYPES, ITEM_STATUS, CATEGORIES } from "../constants";
+import { PLACEHOLDER_ITEM_IMAGE } from "../constants/assets";
+import { formatDate } from "../utils/formatters";
 
 export default function ItemDetails() {
   const { id } = useParams();
@@ -28,11 +31,8 @@ export default function ItemDetails() {
     description: "",
     category: "",
     location: "",
-    status: "open",
+    status: ITEM_STATUS.OPEN,
   });
-
-  const placeholderImage =
-    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23e2e8f0'><rect width='400' height='300'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-family='sans-serif' font-size='18'>No Photo Available</text></svg>";
 
   const fetchItem = async () => {
     try {
@@ -114,9 +114,11 @@ export default function ItemDetails() {
   if (error && !item) return <div className="page-container"><Alert type="error" message={error} /></div>;
   if (!item) return null;
 
-  const isOwner = user && item.reportedBy && (item.reportedBy._id === user.id || item.reportedBy === user.id);
-  const isLost = item.type === "lost";
-  const isReturned = item.status === "returned";
+  const isOwner = Boolean(
+    user && item.reportedBy && (item.reportedBy._id === user.id || item.reportedBy === user.id)
+  );
+  const isLost = item.type === ITEM_TYPES.LOST;
+  const isReturned = item.status === ITEM_STATUS.RETURNED;
 
   return (
     <div className="page-container">
@@ -127,12 +129,12 @@ export default function ItemDetails() {
         {/* Left Column: Image */}
         <div className="detail-image-wrap">
           <img
-            src={item.imageUrl || placeholderImage}
+            src={item.imageUrl || PLACEHOLDER_ITEM_IMAGE}
             alt={item.title}
             className="detail-image"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = placeholderImage;
+              e.target.src = PLACEHOLDER_ITEM_IMAGE;
             }}
           />
         </div>
@@ -160,12 +162,7 @@ export default function ItemDetails() {
                   <strong>📍 Location:</strong> {item.location}
                 </div>
                 <div className="detail-meta-item">
-                  <strong>📅 Date of Event:</strong>{" "}
-                  {new Date(item.dateOfEvent).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  <strong>📅 Date of Event:</strong> {formatDate(item.dateOfEvent, { month: "long" })}
                 </div>
                 <div className="detail-meta-item">
                   <strong>👤 Reported By:</strong> {item.reportedBy?.name || "Campus User"}
@@ -211,7 +208,7 @@ export default function ItemDetails() {
                   onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   className="form-input"
                 >
-                  {["Electronics", "Documents", "Accessories", "Books", "Bags", "Keys", "Clothing", "Other"].map((cat) => (
+                  {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
@@ -246,8 +243,8 @@ export default function ItemDetails() {
                   onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                   className="form-input"
                 >
-                  <option value="open">Open</option>
-                  <option value="returned">Returned</option>
+                  <option value={ITEM_STATUS.OPEN}>Open</option>
+                  <option value={ITEM_STATUS.RETURNED}>Returned</option>
                 </select>
               </div>
 

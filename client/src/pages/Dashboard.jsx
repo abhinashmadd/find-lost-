@@ -5,6 +5,8 @@ import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import { ITEM_TYPES, ITEM_STATUS, CLAIM_STATUS } from "../constants";
+import { formatDate } from "../utils/formatters";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -144,18 +146,18 @@ export default function Dashboard() {
                         <strong>{item.title}</strong>
                       </td>
                       <td>
-                        <span className={`badge ${item.type === "lost" ? "badge-lost" : "badge-found"}`}>
+                        <span className={`badge ${item.type === ITEM_TYPES.LOST ? "badge-lost" : "badge-found"}`}>
                           {item.type}
                         </span>
                       </td>
                       <td>{item.category}</td>
                       <td>{item.location}</td>
                       <td>
-                        <span className={`badge ${item.status === "returned" ? "badge-returned" : "badge-open"}`}>
+                        <span className={`badge ${item.status === ITEM_STATUS.RETURNED ? "badge-returned" : "badge-open"}`}>
                           {item.status}
                         </span>
                       </td>
-                      <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                      <td>{formatDate(item.createdAt)}</td>
                       <td className="table-actions">
                         <Link to={`/items/${item._id}`} className="btn-table-view">
                           View
@@ -217,7 +219,7 @@ export default function Dashboard() {
                           {claim.status}
                         </span>
                       </td>
-                      <td>{new Date(claim.createdAt).toLocaleDateString()}</td>
+                      <td>{formatDate(claim.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -250,8 +252,8 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {claimsReceived.map((claim) => {
-                    const isPending = claim.status === "pending";
-                    const isApproved = claim.status === "approved";
+                    const isPending = claim.status === CLAIM_STATUS.PENDING;
+                    const isApproved = claim.status === CLAIM_STATUS.APPROVED;
 
                     return (
                       <tr key={claim._id}>

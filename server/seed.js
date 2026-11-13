@@ -1,6 +1,9 @@
 const path = require("path");
+// Load environment variables from server/.env with fallback to root .env
 require("dotenv").config({ path: path.join(__dirname, ".env") });
-require("dotenv").config();
+if (!process.env.JWT_SECRET && !process.env.MONGODB_URI) {
+  require("dotenv").config({ path: path.join(__dirname, "../.env") });
+}
 const bcrypt = require("bcryptjs");
 const { connectDB } = require("./config/db");
 const User = require("./models/User");

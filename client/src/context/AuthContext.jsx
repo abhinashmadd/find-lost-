@@ -3,6 +3,13 @@ import authService from "../services/authService";
 
 const AuthContext = createContext();
 
+const normalizeUser = (rawUser) => {
+  if (!rawUser) return null;
+  const id = rawUser.id || rawUser._id;
+  const _id = rawUser._id || rawUser.id;
+  return { ...rawUser, id, _id };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
@@ -19,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const userData = await authService.getMe();
-        setUser(userData);
+        setUser(normalizeUser(userData));
       } catch (error) {
         // Token is invalid or expired
         localStorage.removeItem("token");
@@ -39,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     const { token: receivedToken, user: receivedUser } = data;
     localStorage.setItem("token", receivedToken);
     setToken(receivedToken);
-    setUser(receivedUser);
+    setUser(normalizeUser(receivedUser));
     return data;
   };
 

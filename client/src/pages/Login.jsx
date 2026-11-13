@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Alert from "../components/Alert";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [form, setForm] = useState({
@@ -14,6 +15,7 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(location.state?.message || "");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -45,6 +47,7 @@ export default function Login() {
         <h2>Welcome Back</h2>
         <p className="form-subtitle">Log in to report items and manage your claims</p>
 
+        {success && <Alert type="success" message={success} onClose={() => setSuccess("")} />}
         {error && <Alert type="error" message={error} onClose={() => setError("")} />}
 
         <form onSubmit={handleSubmit} className="form-body">

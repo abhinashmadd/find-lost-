@@ -2,17 +2,18 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import itemService from "../services/itemService";
 import Alert from "../components/Alert";
+import { CATEGORIES, ITEM_TYPES } from "../constants";
 
 export default function ReportItem() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const initialType = searchParams.get("type") === "found" ? "found" : "lost";
+  const initialType = searchParams.get("type") === ITEM_TYPES.FOUND ? ITEM_TYPES.FOUND : ITEM_TYPES.LOST;
 
   const [form, setForm] = useState({
     type: initialType,
     title: "",
     description: "",
-    category: "Electronics",
+    category: CATEGORIES[0],
     location: "",
     dateOfEvent: new Date().toISOString().split("T")[0],
   });
@@ -21,17 +22,6 @@ export default function ReportItem() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const categories = [
-    "Electronics",
-    "Documents",
-    "Accessories",
-    "Books",
-    "Bags",
-    "Keys",
-    "Clothing",
-    "Other",
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -169,7 +159,7 @@ export default function ReportItem() {
                 onChange={handleChange}
                 className="form-input"
               >
-                {categories.map((cat) => (
+                {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

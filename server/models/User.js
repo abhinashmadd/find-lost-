@@ -34,7 +34,11 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 const MongooseUser = mongoose.models.User || mongoose.model("User", userSchema);

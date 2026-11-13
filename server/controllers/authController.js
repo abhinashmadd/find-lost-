@@ -35,8 +35,12 @@ exports.register = async (req, res) => {
     // Return created user without password hash
     return res.status(201).json({
       id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
+      phone: user.phone,
+      isActive: user.isActive,
     });
   } catch (error) {
     return res.status(500).json({ message: "Server error during registration" });
@@ -78,9 +82,12 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        isActive: user.isActive,
       },
     });
   } catch (error) {
@@ -97,7 +104,10 @@ exports.getMe = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json(user);
+    const userObj = user.toObject ? user.toObject() : { ...user };
+    userObj.id = userObj._id;
+
+    return res.status(200).json(userObj);
   } catch (error) {
     return res.status(500).json({ message: "Server error fetching user profile" });
   }

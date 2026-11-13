@@ -24,3 +24,9 @@ This document records every major technical decision, its context, justification
 - **Decision**: Introduced a dedicated domain service layer (`authService`, `itemService`, `claimService`, `adminService`) and custom reusable hooks (`useDebounce`, `useItems`).
 - **Impact**: UI components are decoupled from REST endpoints, improving testability, modularity, and adherence to rule E4 and Phase 2 architecture refactoring requirements.
 
+#### DEC-004: Centralized Domain Constants & ID Normalization
+- **Date**: 2026-11-13
+- **Context**: Magic strings for item types, statuses, user roles, and category taxonomies were hardcoded throughout UI views and backend controllers. Additionally, inconsistent serialization between MongoDB `_id` and client `id` resulted in fragile ownership and admin checks across page reloads.
+- **Decision**: Centralized domain constants (`ITEM_TYPES`, `ITEM_STATUS`, `CLAIM_STATUS`, `USER_ROLES`, `CATEGORIES`) in dedicated modules on both client and server. Enabled Mongoose virtuals (`toJSON: { virtuals: true }`), normalized auth responses and `AuthContext` state, unified date formatting in `client/src/utils/formatters.js`, and removed dead `client/vercel.json`.
+- **Impact**: Guarantees type safety, consistent naming conventions across full stack, prevents identity deserialization bugs, and eliminates duplicate logic.
+

@@ -1,31 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { ITEM_TYPES } from "../constants";
+import { PLACEHOLDER_ITEM_IMAGE } from "../constants/assets";
+import { formatDate } from "../utils/formatters";
 
 // ItemCard: Displays a summary card for an item in the grid
 export default function ItemCard({ item }) {
-  // SVG placeholder when no image was uploaded
-  const placeholderImage =
-    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200' fill='%23e2e8f0'><rect width='300' height='200'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-family='sans-serif' font-size='16'>No Photo Available</text></svg>";
-
-  const isLost = item.type === "lost";
-  const formattedDate = item.dateOfEvent
-    ? new Date(item.dateOfEvent).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "";
+  const isLost = item.type === ITEM_TYPES.LOST;
+  const formattedDate = formatDate(item.dateOfEvent);
 
   return (
     <Link to={`/items/${item._id}`} className="item-card">
       <div className="card-image-wrap">
         <img
-          src={item.imageUrl || placeholderImage}
+          src={item.imageUrl || PLACEHOLDER_ITEM_IMAGE}
           alt={item.title}
           className="card-image"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = placeholderImage;
+            e.target.src = PLACEHOLDER_ITEM_IMAGE;
           }}
         />
         <span className={`badge ${isLost ? "badge-lost" : "badge-found"}`}>
