@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const AppError = require("../utils/appError");
 
 // Middleware to protect routes: verifies JWT and ensures account is active
 exports.protect = async (req, res, next) => {
@@ -7,7 +8,7 @@ exports.protect = async (req, res, next) => {
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 
   if (!token) {
-    return res.status(401).json({ message: "Not authorised, no token provided" });
+    return next(new AppError("Not authorised, no token provided", 401));
   }
 
   try {
@@ -17,12 +18,12 @@ exports.protect = async (req, res, next) => {
     // Confirm that the user still exists
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(401).json({ message: "User belonging to this token no longer exists" });
+      return next(new AppError("User belonging to this token no longer exists", 401));
     }
 
     // Confirm that the account is not deactivated (only block when explicitly false)
     if (user.isActive === false) {
-      return res.status(403).json({ message: "Account has been deactivated" });
+      return next(new AppError("Account has been deactivated", 403));
     }
 
     // Attach user identity to request object
@@ -32,7 +33,7 @@ exports.protect = async (req, res, next) => {
     };
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Token invalid or expired" });
+    return next(new AppError("Token invalid or expired", 401));
   }
 };
 
@@ -41,6 +42,6 @@ exports.adminOnly = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
-    return res.status(403).json({ message: "Admin access required" });
+    return next(new AppError("Admin access required", 403));
   }
 };

@@ -28,5 +28,28 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor to handle global response errors and expired sessions
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // 401 Unauthorized handling (token expired or invalidated)
+    if (error.response?.status === 401) {
+      const isLoginRequest = error.config?.url?.includes("/auth/login");
+      if (!isLoginRequest) {
+        localStorage.removeItem("token");
+      }
+    }
+
+    // Attach human-readable message
+    if (!error.response) {
+      error.userMessage = "Network error: Unable to reach the campus server. Please check your connection.";
+    } else {
+      error.userMessage = error.response.data?.message || "An unexpected error occurred. Please try again.";
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;
 

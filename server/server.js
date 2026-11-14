@@ -10,6 +10,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { connectDB } = require("./config/db");
 const { apiLimiter } = require("./middleware/rateLimiter");
+const AppError = require("./utils/appError");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -61,20 +63,28 @@ if (fs.existsSync(clientDistPath)) {
 }
 
 // Catch 404 for undefined routes
-app.use((req, res) => {
-  res.status(404).json({ message: "Requested API endpoint not found" });
+app.use((req, res, next) => {
+  next(new AppError(`Requested API endpoint '${req.originalUrl}' not found`, 404));
 });
 
-// Global error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
-  const status = err.statusCode || 500;
-  res.status(status).json({
-    message: err.message || "Internal server error occurred",
+// Centralized error handling middleware
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Handle unhandled Promise rejections
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION 💥 Shutting down gracefully...", err);
+  server.close(() => {
+    process.exit(1);
   });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION 💥 Shutting down immediately...", err);
+  process.exit(1);
 });

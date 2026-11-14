@@ -34,3 +34,4 @@ export const CATEGORIES = Object.freeze([
   "Clothing",
   "Other",
 ]);
+
