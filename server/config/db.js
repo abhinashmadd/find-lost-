@@ -1,5 +1,6 @@
 const net = require("net");
 const mongoose = require("mongoose");
+const config = require("./env");
 const localDb = require("./localDb");
 
 let isMongoConnected = false;
@@ -27,10 +28,10 @@ const isPortOpen = (host, port) => {
 
 // Connect to MongoDB or seamlessly use the built-in standalone database
 const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || "";
+  const uri = config.database.uri;
 
-  // 1. If no URI or explicitly marked for local DB
-  if (!uri || uri === "local" || process.env.USE_LOCAL_DB === "true") {
+  // 1. If explicitly marked for local DB or uri is "local"
+  if (config.database.useLocal || !uri || uri === "local") {
     console.log("⚡ Standalone Local DB mode active (No MongoDB required).");
     console.log("📁 Data saved in server/data/*.json");
     await localDb.init();

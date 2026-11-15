@@ -24,3 +24,21 @@ This document records every major technical decision, its context, justification
 - **Decision**: Introduced a dedicated domain service layer (`authService`, `itemService`, `claimService`, `adminService`) and custom reusable hooks (`useDebounce`, `useItems`).
 - **Impact**: UI components are decoupled from REST endpoints, improving testability, modularity, and adherence to rule E4 and Phase 2 architecture refactoring requirements.
 
+#### DEC-004: Centralized Domain Constants & ID Normalization
+- **Date**: 2026-11-13
+- **Context**: Magic strings for item types, statuses, user roles, and category taxonomies were hardcoded throughout UI views and backend controllers. Additionally, inconsistent serialization between MongoDB `_id` and client `id` resulted in fragile ownership and admin checks across page reloads.
+- **Decision**: Centralized domain constants (`ITEM_TYPES`, `ITEM_STATUS`, `CLAIM_STATUS`, `USER_ROLES`, `CATEGORIES`) in dedicated modules on both client and server. Enabled Mongoose virtuals (`toJSON: { virtuals: true }`), normalized auth responses and `AuthContext` state, unified date formatting in `client/src/utils/formatters.js`, and removed dead `client/vercel.json`.
+- **Impact**: Guarantees type safety, consistent naming conventions across full stack, prevents identity deserialization bugs, and eliminates duplicate logic.
+
+#### DEC-005: Full-Stack Centralized Error Handling & React Error Boundary
+- **Date**: 2026-11-14
+- **Context**: Backend controllers duplicated manual try/catch blocks that swallowed internal error details and returned generic 500 status codes without invoking Express's centralized error middleware. On the frontend, unhandled rendering runtime errors resulted in a blank white screen, and expired JWT tokens caused silent repeated 401 failures.
+- **Decision**: Created `AppError` operational error class, `asyncHandler` controller wrapper, and comprehensive `errorHandler` middleware that handles Mongoose `CastError`, `ValidationError`, `11000` duplicate key, and JWT errors with environment-aware sanitization. On the client, introduced `ErrorBoundary` component around application routes and an Axios response interceptor for automatic 401 session clearing and human-readable error formatting. Added process-level `unhandledRejection` and `uncaughtException` graceful shutdowns.
+- **Impact**: Guarantees zero unhandled exceptions escape uncaught, prevents UI white-screen crashes, protects internal stack traces from leaking to clients in production, and provides actionable telemetry in development.
+
+#### DEC-006: Separation of Configuration from Code via Centralized Modules
+- **Date**: 2026-11-15
+- **Context**: `process.env` lookups and `import.meta.env` were scattered across 10+ disparate files with hardcoded default fallbacks (e.g. fallback JWT secret, hardcoded rate limit windows, and file upload limits), creating security risks and configuration drift.
+- **Decision**: Created `server/config/env.js` and `client/src/config/env.js` as single sources of truth. Validated configuration at process startup, enforced strict production warnings if default secrets are detected, parsed typed configuration values, and comprehensively documented all environment parameters in root, server, and client `.env.example` templates.
+- **Impact**: Eliminates scattered environment variables, ensures 12-factor application compliance, and prevents silent insecure defaults in production.
+

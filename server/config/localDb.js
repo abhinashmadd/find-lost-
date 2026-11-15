@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const config = require("./env");
 
 const dataDir = path.join(__dirname, "../data");
 
@@ -324,20 +325,20 @@ const localDb = {
   init: async () => {
     try {
       const users = localDb.users.read();
-      const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").toLowerCase().trim();
+      const adminEmail = config.admin.email;
       const adminExists = users.some((u) => u.email.toLowerCase() === adminEmail);
 
       if (!adminExists) {
-        const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || "Admin@1234", 10);
+        const passwordHash = await bcrypt.hash(config.admin.password, 10);
         await localDb.users.create({
-          name: process.env.ADMIN_NAME || "System Admin",
+          name: config.admin.name,
           email: adminEmail,
           passwordHash,
           role: "admin",
           phone: "9999999999",
           isActive: true,
         });
-        console.log(`Auto-seeded admin user: ${adminEmail} (Password: ${process.env.ADMIN_PASSWORD || "Admin@1234"})`);
+        console.log(`Auto-seeded admin user: ${adminEmail} (Password: ${config.admin.password})`);
       }
     } catch (err) {
       console.error("Local DB seed error:", err.message);

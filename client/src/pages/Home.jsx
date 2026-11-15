@@ -4,6 +4,7 @@ import itemService from "../services/itemService";
 import ItemCard from "../components/ItemCard";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import { ITEM_STATUS } from "../constants";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function Home() {
     const fetchRecentItems = async () => {
       try {
         setLoading(true);
-        const data = await itemService.listItems({ status: "open", limit: 6 });
+        const data = await itemService.listItems({ status: ITEM_STATUS.OPEN, limit: 6 });
         setRecentItems(data.items || []);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load recent items");

@@ -4,6 +4,7 @@ import Loader from "../components/Loader";
 import Alert from "../components/Alert";
 import useDebounce from "../hooks/useDebounce";
 import useItems from "../hooks/useItems";
+import { CATEGORIES, ITEM_STATUS } from "../constants";
 
 export default function Listing() {
   // Filter state
@@ -11,17 +12,6 @@ export default function Listing() {
   const [selectedType, setSelectedType] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [page, setPage] = useState(1);
-
-  const categories = [
-    "Electronics",
-    "Documents",
-    "Accessories",
-    "Books",
-    "Bags",
-    "Keys",
-    "Clothing",
-    "Other",
-  ];
 
   // Decoupled debouncing via custom hook
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -37,7 +27,7 @@ export default function Listing() {
     q: debouncedSearch,
     type: selectedType,
     category: selectedCategory,
-    status: "open",
+    status: ITEM_STATUS.OPEN,
     page,
     limit: 12,
   });
@@ -96,7 +86,7 @@ export default function Listing() {
             className="filter-select"
           >
             <option value="">All Categories</option>
-            {categories.map((cat) => (
+            {CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>

@@ -1,16 +1,17 @@
 const fs = require("fs");
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const config = require("./config/env");
 const { connectDB } = require("./config/db");
 const { apiLimiter } = require("./middleware/rateLimiter");
+const AppError = require("./utils/appError");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// Connect to MongoDB database
+// Connect to database
 connectDB();
 
 // Security HTTP headers (allow cross-origin resource access for uploaded photos)
@@ -19,11 +20,10 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 // Apply global rate limiting to all requests
 app.use(apiLimiter);
 
-// Restrict CORS to CLIENT_URL if provided, or allow dynamic origin
-const allowedOrigin = process.env.CLIENT_URL;
+// Restrict CORS based on central configuration
 app.use(
   cors({
-    origin: allowedOrigin ? [allowedOrigin, "http://localhost:5173"] : true,
+    origin: config.clientUrl ? [config.clientUrl, "http://localhost:5173"] : true,
     credentials: true,
   })
 );
@@ -58,20 +58,28 @@ if (fs.existsSync(clientDistPath)) {
 }
 
 // Catch 404 for undefined routes
-app.use((req, res) => {
-  res.status(404).json({ message: "Requested API endpoint not found" });
+app.use((req, res, next) => {
+  next(new AppError(`Requested API endpoint '${req.originalUrl}' not found`, 404));
 });
 
-// Global error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
-  const status = err.statusCode || 500;
-  res.status(status).json({
-    message: err.message || "Internal server error occurred",
+// Centralized error handling middleware
+app.use(errorHandler);
+
+const PORT = config.port;
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${config.env} mode on port ${PORT}`);
+});
+
+// Handle unhandled Promise rejections
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION 💥 Shutting down gracefully...", err);
+  server.close(() => {
+    process.exit(1);
   });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION 💥 Shutting down immediately...", err);
+  process.exit(1);
 });

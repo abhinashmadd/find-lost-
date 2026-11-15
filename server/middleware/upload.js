@@ -3,21 +3,15 @@ const fs = require("fs");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
-// Check if valid Cloudinary credentials are provided in .env
-const hasCloudinary =
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_CLOUD_NAME !== "demo" &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_KEY !== "123456789";
+const config = require("../config/env");
 
 let storage;
 
-if (hasCloudinary) {
+if (config.cloudinary.isConfigured) {
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: config.cloudinary.cloudName,
+    api_key: config.cloudinary.apiKey,
+    api_secret: config.cloudinary.apiSecret,
   });
 
   storage = new CloudinaryStorage({
@@ -46,8 +40,7 @@ if (hasCloudinary) {
 
 // Validate file type
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  if (config.upload.allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new Error("Only .jpg, .jpeg, .png, and .webp images are allowed"), false);
@@ -56,7 +49,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
+  limits: { fileSize: config.upload.maxFileSizeBytes },
   fileFilter,
 });
 

@@ -47,7 +47,11 @@ const itemSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 itemSchema.index({ title: "text", description: "text", location: "text" });

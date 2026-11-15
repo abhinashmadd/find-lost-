@@ -1,7 +1,5 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
-require("dotenv").config();
 const bcrypt = require("bcryptjs");
+const config = require("./config/env");
 const { connectDB } = require("./config/db");
 const User = require("./models/User");
 
@@ -9,9 +7,9 @@ const seedAdmin = async () => {
   try {
     await connectDB();
 
-    const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").toLowerCase().trim();
-    const adminPassword = process.env.ADMIN_PASSWORD || "Admin@1234";
-    const adminName = process.env.ADMIN_NAME || "System Admin";
+    const adminEmail = config.admin.email;
+    const adminPassword = config.admin.password;
+    const adminName = config.admin.name;
 
     const existingAdmin = await User.findOne({ email: adminEmail });
     if (existingAdmin) {
