@@ -1,13 +1,9 @@
 const fs = require("fs");
 const path = require("path");
-// Load environment variables from server/.env with fallback to root .env
-require("dotenv").config({ path: path.join(__dirname, ".env") });
-if (!process.env.JWT_SECRET && !process.env.MONGODB_URI) {
-  require("dotenv").config({ path: path.join(__dirname, "../.env") });
-}
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const config = require("./config/env");
 const { connectDB } = require("./config/db");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const AppError = require("./utils/appError");
@@ -15,7 +11,7 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// Connect to MongoDB database
+// Connect to database
 connectDB();
 
 // Security HTTP headers (allow cross-origin resource access for uploaded photos)
@@ -24,11 +20,10 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 // Apply global rate limiting to all requests
 app.use(apiLimiter);
 
-// Restrict CORS to CLIENT_URL if provided, or allow dynamic origin
-const allowedOrigin = process.env.CLIENT_URL;
+// Restrict CORS based on central configuration
 app.use(
   cors({
-    origin: allowedOrigin ? [allowedOrigin, "http://localhost:5173"] : true,
+    origin: config.clientUrl ? [config.clientUrl, "http://localhost:5173"] : true,
     credentials: true,
   })
 );
@@ -70,9 +65,9 @@ app.use((req, res, next) => {
 // Centralized error handling middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = config.port;
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in ${config.env} mode on port ${PORT}`);
 });
 
 // Handle unhandled Promise rejections

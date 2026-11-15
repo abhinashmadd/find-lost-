@@ -4,6 +4,7 @@ const { validationResult } = require("express-validator");
 const User = require("../models/User");
 const AppError = require("../utils/appError");
 const asyncHandler = require("../middleware/asyncHandler");
+const config = require("../config/env");
 
 // Register a new user
 exports.register = asyncHandler(async (req, res, next) => {
@@ -65,12 +66,11 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new AppError("Account has been deactivated", 403));
   }
 
-  // Create JWT token valid for 7 days
-  const jwtSecret = process.env.JWT_SECRET || "supersecretjwtkeyforcollegeproject2026";
+  // Create JWT token using central configuration
   const token = jwt.sign(
     { id: user._id, role: user.role },
-    jwtSecret,
-    { expiresIn: "7d" }
+    config.jwt.secret,
+    { expiresIn: config.jwt.expiresIn }
   );
 
   return res.status(200).json({

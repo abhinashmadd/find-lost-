@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const AppError = require("../utils/appError");
+const config = require("../config/env");
 
 // Middleware to protect routes: verifies JWT and ensures account is active
 exports.protect = async (req, res, next) => {
@@ -12,8 +13,7 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
-    const jwtSecret = process.env.JWT_SECRET || "supersecretjwtkeyforcollegeproject2026";
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = jwt.verify(token, config.jwt.secret);
 
     // Confirm that the user still exists
     const user = await User.findById(decoded.id);

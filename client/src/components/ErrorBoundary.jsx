@@ -1,4 +1,5 @@
 import React from "react";
+import config from "../config/env";
 
 /**
  * Production-ready React Error Boundary.
@@ -53,7 +54,7 @@ export default class ErrorBoundary extends React.Component {
                 Return to Home
               </button>
             </div>
-            {import.meta.env.DEV && this.state.error && (
+            {config.isDev && this.state.error && (
               <pre
                 style={{
                   marginTop: "1.5rem",
@@ -77,3 +78,4 @@ export default class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+

@@ -1,4 +1,5 @@
 const AppError = require("../utils/appError");
+const config = require("../config/env");
 
 /**
  * Handle Mongoose invalid ObjectId CastError.
@@ -92,9 +93,7 @@ const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
-  const isDev = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
-
-  if (isDev) {
+  if (config.isDevelopment) {
     sendErrorDev(err, res);
   } else {
     let error = Object.assign(err);
@@ -112,3 +111,4 @@ const errorHandler = (err, req, res, next) => {
 };
 
 module.exports = errorHandler;
+
