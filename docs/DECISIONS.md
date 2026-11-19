@@ -42,3 +42,9 @@ This document records every major technical decision, its context, justification
 - **Decision**: Created `server/config/env.js` and `client/src/config/env.js` as single sources of truth. Validated configuration at process startup, enforced strict production warnings if default secrets are detected, parsed typed configuration values, and comprehensively documented all environment parameters in root, server, and client `.env.example` templates.
 - **Impact**: Eliminates scattered environment variables, ensures 12-factor application compliance, and prevents silent insecure defaults in production.
 
+#### DEC-007: Modular UI Component Library & Accessible Modal Architecture
+- **Date**: 2026-11-19
+- **Context**: UI elements including status badges, destructive action prompts (`window.confirm`), empty list placeholders, and form inputs were implemented inline across views with inconsistent styles, non-accessible browser alerts, and code duplication.
+- **Decision**: Modularized reusable presentation components: `Badge` (variant-based status/type indicators), `ConfirmationModal` (accessible dialog with Escape key and backdrop dismissal, eliminating blocking `window.confirm`), `EmptyState` (standardized empty listing/claim placeholders with action buttons), and `FormField` (accessible input wrapper). Exported via a central barrel `client/src/components/index.js` and styled according to Phase 3 brand rules.
+- **Impact**: Eliminates duplicated UI markup, improves WCAG accessibility and keyboard navigation, removes blocking browser dialogs, and prepares the frontend for automated end-to-end testing.
+

@@ -3,8 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import itemService from "../services/itemService";
 import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
-import Loader from "../components/Loader";
-import Alert from "../components/Alert";
+import { Loader, Alert, Badge, ConfirmationModal, FormField } from "../components";
 import { ITEM_TYPES, ITEM_STATUS, CATEGORIES } from "../constants";
 import { PLACEHOLDER_ITEM_IMAGE } from "../constants/assets";
 import { formatDate } from "../utils/formatters";
@@ -18,6 +17,10 @@ export default function ItemDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Claim form state
   const [claimMessage, setClaimMessage] = useState("");
@@ -84,16 +87,17 @@ export default function ItemDetails() {
     }
   };
 
-  // Handle item deletion (owner or admin)
-  const handleDeleteItem = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this listing?");
-    if (!confirmed) return;
-
+  // Handle item deletion via ConfirmationModal
+  const confirmDeleteItem = async () => {
     try {
+      setDeleting(true);
       await itemService.deleteItem(id);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Could not delete item.");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -142,12 +146,14 @@ export default function ItemDetails() {
         {/* Right Column: Info & Actions */}
         <div className="detail-info-wrap">
           <div className="detail-header-badges">
-            <span className={`badge ${isLost ? "badge-lost" : "badge-found"}`}>
-              {isLost ? "Lost Item" : "Found Item"}
-            </span>
-            <span className={`badge ${isReturned ? "badge-returned" : "badge-open"}`}>
-              {isReturned ? "Returned / Resolved" : "Open Listing"}
-            </span>
+            <Badge
+              variant={isLost ? "lost" : "found"}
+              label={isLost ? "Lost Item" : "Found Item"}
+            />
+            <Badge
+              variant={isReturned ? "returned" : "open"}
+              label={isReturned ? "Returned / Resolved" : "Open Listing"}
+            />
           </div>
 
           {!isEditing ? (
@@ -180,7 +186,7 @@ export default function ItemDetails() {
                   <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
                     ✏️ Edit Details
                   </button>
-                  <button onClick={handleDeleteItem} className="btn btn-danger">
+                  <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger">
                     🗑️ Delete Listing
                   </button>
                 </div>
@@ -314,6 +320,18 @@ export default function ItemDetails() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal for Deletion */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Listing"
+        message="Are you sure you want to permanently remove this listing? This action cannot be undone."
+        confirmText="Delete Listing"
+        confirmVariant="danger"
+        onConfirm={confirmDeleteItem}
+        onCancel={() => setShowDeleteModal(false)}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -1,10 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ErrorBoundary from "./components/ErrorBoundary";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { ProtectedRoute, ErrorBoundary, Navbar, Footer } from "./components";
 
 // Pages
 import Home from "./pages/Home";

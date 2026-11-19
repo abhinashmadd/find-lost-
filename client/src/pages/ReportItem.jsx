@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import itemService from "../services/itemService";
-import Alert from "../components/Alert";
+import { Alert } from "../components";
 import { CATEGORIES, ITEM_TYPES } from "../constants";
 
 export default function ReportItem() {

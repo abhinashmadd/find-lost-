@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import itemService from "../services/itemService";
-import ItemCard from "../components/ItemCard";
-import Loader from "../components/Loader";
-import Alert from "../components/Alert";
+import { ItemCard, Loader, Alert, EmptyState } from "../components";
 import { ITEM_STATUS } from "../constants";
 
 export default function Home() {
@@ -75,7 +73,13 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <p className="no-items-text">No active items reported at the moment.</p>
+          <EmptyState
+            icon="🔍"
+            title="No Active Items Found"
+            message="There are no active open listings reported on campus at the moment."
+            actionLabel="Report an Item"
+            actionLink="/report"
+          />
         )}
       </section>
     </div>

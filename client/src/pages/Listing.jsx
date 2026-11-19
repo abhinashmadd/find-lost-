@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import ItemCard from "../components/ItemCard";
-import Loader from "../components/Loader";
-import Alert from "../components/Alert";
+import { ItemCard, Loader, Alert, EmptyState } from "../components";
 import useDebounce from "../hooks/useDebounce";
 import useItems from "../hooks/useItems";
 import { CATEGORIES, ITEM_STATUS } from "../constants";
@@ -138,11 +136,13 @@ export default function Listing() {
           )}
         </>
       ) : (
-        <div className="no-items-card">
-          <span className="no-items-icon">🔎</span>
-          <h3>No items found</h3>
-          <p>Try refining your search keyword or clearing the filters.</p>
-        </div>
+        <EmptyState
+          icon="🔎"
+          title="No items found"
+          message="Try refining your search keyword or clearing the filters."
+          actionLabel="Clear Filters"
+          onAction={handleResetFilters}
+        />
       )}
     </div>
   );
