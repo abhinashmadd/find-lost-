@@ -48,3 +48,14 @@ This document records every major technical decision, its context, justification
 - **Decision**: Modularized reusable presentation components: `Badge` (variant-based status/type indicators), `ConfirmationModal` (accessible dialog with Escape key and backdrop dismissal, eliminating blocking `window.confirm`), `EmptyState` (standardized empty listing/claim placeholders with action buttons), and `FormField` (accessible input wrapper). Exported via a central barrel `client/src/components/index.js` and styled according to Phase 3 brand rules.
 - **Impact**: Eliminates duplicated UI markup, improves WCAG accessibility and keyboard navigation, removes blocking browser dialogs, and prepares the frontend for automated end-to-end testing.
 
+#### DEC-008: Global State Management Architecture (Toast, Theme, Enhanced Auth)
+- **Date**: 2026-11-20
+- **Context**: State management across the client application was fragmented. Feedback messages were stored locally inside individual view states, disappearing on route navigation and requiring duplicate banner markup. Theme preferences lacked persistent global synchronization with the DOM, and authentication state relied on basic user/token state without multi-tab synchronization or standardized profile refreshing.
+- **Decision**: Implemented a unified global state architecture using React Context:
+  1. `ToastContext`: Global notification dispatcher (`showSuccess`, `showError`, `showInfo`) rendering fixed accessible notifications that persist across route transitions with auto-dismiss timers and accessible SVG icons.
+  2. `ThemeContext`: Persistent theme state synchronized with `localStorage` and `document.documentElement`'s `data-theme` attribute, with OS system color-scheme listener support.
+  3. `AuthContext`: Enhanced with computed flags (`isAuthenticated`, `isAdmin`), `refreshUser()` profile fetcher, and cross-tab session synchronization via window `storage` events.
+  4. Unified barrel export `client/src/context/index.js` and composed top-level providers in `App.jsx`.
+- **Impact**: Enables seamless global feedback notifications across route changes, provides synchronized multi-tab session management, establishes theme infrastructure, and centralizes state without introducing heavy external dependencies.
+
+

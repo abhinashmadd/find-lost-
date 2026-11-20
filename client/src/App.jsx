@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, ToastProvider, ThemeProvider } from "./context";
 import { ProtectedRoute, ErrorBoundary, Navbar, Footer } from "./components";
 
 // Pages
@@ -16,55 +16,59 @@ import Register from "./pages/Register";
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <div className="app-layout">
-          <Navbar />
-          <main className="main-content">
-            <ErrorBoundary>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/items" element={<Listing />} />
-                <Route path="/items/:id" element={<ItemDetails />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <div className="app-layout">
+              <Navbar />
+              <main className="main-content">
+                <ErrorBoundary>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/items" element={<Listing />} />
+                    <Route path="/items/:id" element={<ItemDetails />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-                {/* Protected User Routes */}
-                <Route
-                  path="/report"
-                  element={
-                    <ProtectedRoute>
-                      <ReportItem />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* Protected User Routes */}
+                    <Route
+                      path="/report"
+                      element={
+                        <ProtectedRoute>
+                          <ReportItem />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* Protected Admin Route */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <Admin />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* Protected Admin Route */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute adminOnly={true}>
+                          <Admin />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* Fallback to Home */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </ErrorBoundary>
-          </main>
-          <Footer />
-        </div>
-      </AuthProvider>
+                    {/* Fallback to Home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </ErrorBoundary>
+              </main>
+              <Footer />
+            </div>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
