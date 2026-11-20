@@ -67,5 +67,12 @@ This document records every major technical decision, its context, justification
   3. Controller Decoupling: Replaced duplicate `ObjectId.isValid` checks in controllers with `validateMongoId` route middleware, keeping controllers lean and focused solely on business operations.
 - **Impact**: Enables clean multi-version routing (`/api` and `/api/v1`), eliminates repetitive validation boilerplate across controllers, standardizes 400 error responses, and guarantees 100% backward compatibility with existing client services and test cases.
 
+#### DEC-010: Codebase & Architecture Documentation Baseline
+- **Date**: 2026-11-20
+- **Context**: Across the Phase 2 refactoring tasks, the codebase was restructured into layered service abstractions, modular validators, global context providers, and centralized configurations. Developer onboarding guides, the root README, and system architecture specifications needed to be brought into synchronization with these newly established patterns.
+- **Decision**: Authored a comprehensive technical architecture guide in `docs/ARCHITECTURE.md` detailing client component hierarchies, domain services, global state architecture, the dual-mode database engine, the request validation pipeline, and complete REST API specifications. Synchronized the root `README.md` to remove informal emojis from headers, document the current refactored directory hierarchy, and provide unified links to all planning and architectural artifacts.
+- **Impact**: Establishes complete and synchronized technical documentation for developers, examiners, and contributors, satisfies Engineering Rules E16 and E17, and marks the completion of Phase 2 (Architecture Refactoring).
+
+
 
 
