@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import itemService from "../services/itemService";
 import claimService from "../services/claimService";
 import { useAuth } from "../context/AuthContext";
-import Loader from "../components/Loader";
-import Alert from "../components/Alert";
+import { Loader, Alert, Badge, EmptyState, ConfirmationModal } from "../components";
 import { ITEM_TYPES, ITEM_STATUS, CLAIM_STATUS } from "../constants";
 import { formatDate } from "../utils/formatters";
 
@@ -19,6 +18,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Reusable modal state
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    confirmVariant: "primary",
+    onConfirm: () => {},
+  });
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const closeModal = () => setModalConfig((prev) => ({ ...prev, isOpen: false }));
 
   const fetchData = async () => {
     try {
@@ -50,33 +62,55 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Handle report deletion via itemService
-  const handleDeleteReport = async (itemId) => {
-    const confirm = window.confirm("Are you sure you want to delete this report?");
-    if (!confirm) return;
-
-    try {
-      await itemService.deleteItem(itemId);
-      setSuccess("Report deleted successfully.");
-      setMyReports((prev) => prev.filter((item) => item._id !== itemId));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete report.");
-    }
+  // Handle report deletion via ConfirmationModal
+  const handleDeleteReport = (itemId) => {
+    setModalConfig({
+      isOpen: true,
+      title: "Delete Report",
+      message: "Are you sure you want to delete this report? This action cannot be undone.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        try {
+          setModalLoading(true);
+          await itemService.deleteItem(itemId);
+          setSuccess("Report deleted successfully.");
+          setMyReports((prev) => prev.filter((item) => item._id !== itemId));
+        } catch (err) {
+          setError(err.response?.data?.message || "Failed to delete report.");
+        } finally {
+          setModalLoading(false);
+          closeModal();
+        }
+      },
+    });
   };
 
-  // Handle claim decision (Approve or Reject) via claimService
-  const handleDecideClaim = async (claimId, decision) => {
-    const confirm = window.confirm(`Are you sure you want to ${decision} this claim?`);
-    if (!confirm) return;
-
-    try {
-      await claimService.decideClaim(claimId, decision);
-      setSuccess(`Claim has been ${decision} successfully.`);
-      // Refresh claims data to update status and reveal contact info
-      fetchData();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to update claim.");
-    }
+  // Handle claim decision (Approve or Reject) via ConfirmationModal
+  const handleDecideClaim = (claimId, decision) => {
+    const isApprove = decision === "approved";
+    setModalConfig({
+      isOpen: true,
+      title: `${isApprove ? "Approve" : "Reject"} Claim`,
+      message: isApprove
+        ? "Approving this claim will mark the item as returned, reveal contact details to the claimant, and reject all other pending claims."
+        : "Are you sure you want to reject this ownership claim?",
+      confirmText: isApprove ? "Approve Claim" : "Reject Claim",
+      confirmVariant: isApprove ? "primary" : "danger",
+      onConfirm: async () => {
+        try {
+          setModalLoading(true);
+          await claimService.decideClaim(claimId, decision);
+          setSuccess(`Claim has been ${decision} successfully.`);
+          fetchData();
+        } catch (err) {
+          setError(err.response?.data?.message || "Failed to update claim.");
+        } finally {
+          setModalLoading(false);
+          closeModal();
+        }
+      },
+    });
   };
 
   if (loading) return <Loader text="Loading your dashboard..." />;
@@ -119,12 +153,13 @@ export default function Dashboard() {
       {activeTab === "reports" && (
         <section className="dashboard-section">
           {myReports.length === 0 ? (
-            <div className="empty-tab-box">
-              <p>You haven't reported any lost or found items yet.</p>
-              <Link to="/report" className="btn btn-submit">
-                Report an Item Now
-              </Link>
-            </div>
+            <EmptyState
+              icon="📋"
+              title="No Reports Filed"
+              message="You haven't reported any lost or found items yet."
+              actionLabel="Report an Item Now"
+              actionLink="/report"
+            />
           ) : (
             <div className="table-responsive">
               <table className="data-table">
@@ -146,16 +181,18 @@ export default function Dashboard() {
                         <strong>{item.title}</strong>
                       </td>
                       <td>
-                        <span className={`badge ${item.type === ITEM_TYPES.LOST ? "badge-lost" : "badge-found"}`}>
-                          {item.type}
-                        </span>
+                        <Badge
+                          variant={item.type === ITEM_TYPES.LOST ? "lost" : "found"}
+                          label={item.type}
+                        />
                       </td>
                       <td>{item.category}</td>
                       <td>{item.location}</td>
                       <td>
-                        <span className={`badge ${item.status === ITEM_STATUS.RETURNED ? "badge-returned" : "badge-open"}`}>
-                          {item.status}
-                        </span>
+                        <Badge
+                          variant={item.status === ITEM_STATUS.RETURNED ? "returned" : "open"}
+                          label={item.status}
+                        />
                       </td>
                       <td>{formatDate(item.createdAt)}</td>
                       <td className="table-actions">
@@ -182,12 +219,13 @@ export default function Dashboard() {
       {activeTab === "made" && (
         <section className="dashboard-section">
           {claimsMade.length === 0 ? (
-            <div className="empty-tab-box">
-              <p>You haven't submitted any claims yet.</p>
-              <Link to="/items" className="btn btn-secondary">
-                Browse Items
-              </Link>
-            </div>
+            <EmptyState
+              icon="📤"
+              title="No Claims Made"
+              message="You haven't submitted any ownership claims yet."
+              actionLabel="Browse Items"
+              actionLink="/items"
+            />
           ) : (
             <div className="table-responsive">
               <table className="data-table">
@@ -215,9 +253,7 @@ export default function Dashboard() {
                       <td>{claim.message}</td>
                       <td>{claim.proofDetails}</td>
                       <td>
-                        <span className={`badge badge-claim-${claim.status}`}>
-                          {claim.status}
-                        </span>
+                        <Badge variant={claim.status} />
                       </td>
                       <td>{formatDate(claim.createdAt)}</td>
                     </tr>
@@ -233,9 +269,11 @@ export default function Dashboard() {
       {activeTab === "received" && (
         <section className="dashboard-section">
           {claimsReceived.length === 0 ? (
-            <div className="empty-tab-box">
-              <p>No claims have been submitted on your reported items yet.</p>
-            </div>
+            <EmptyState
+              icon="📥"
+              title="No Claims Received"
+              message="No claims have been submitted on your reported items yet."
+            />
           ) : (
             <div className="table-responsive">
               <table className="data-table">
@@ -270,9 +308,7 @@ export default function Dashboard() {
                         <td>{claim.message}</td>
                         <td>{claim.proofDetails}</td>
                         <td>
-                          <span className={`badge badge-claim-${claim.status}`}>
-                            {claim.status}
-                          </span>
+                          <Badge variant={claim.status} />
                         </td>
                         <td>
                           {isApproved && claim.claimant ? (
@@ -313,6 +349,18 @@ export default function Dashboard() {
           )}
         </section>
       )}
+
+      {/* Reusable Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        confirmVariant={modalConfig.confirmVariant}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={closeModal}
+        loading={modalLoading}
+      />
     </div>
   );
 }

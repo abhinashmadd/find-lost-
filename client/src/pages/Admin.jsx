@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import adminService from "../services/adminService";
 import itemService from "../services/itemService";
 import { useAuth } from "../context/AuthContext";
-import Loader from "../components/Loader";
-import Alert from "../components/Alert";
+import { Loader, Alert, Badge, ConfirmationModal } from "../components";
 import { ITEM_TYPES, ITEM_STATUS, USER_ROLES } from "../constants";
 import { formatDate } from "../utils/formatters";
 
@@ -16,6 +15,18 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Modal confirmation state
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    confirmVariant: "primary",
+    onConfirm: () => {},
+  });
+  const [modalLoading, setModalLoading] = useState(false);
+  const closeModal = () => setModalConfig((prev) => ({ ...prev, isOpen: false }));
 
   const fetchAdminData = async () => {
     try {
@@ -40,50 +51,80 @@ export default function Admin() {
     fetchAdminData();
   }, []);
 
-  // Admin deletes any report
-  const handleDeleteItem = async (itemId) => {
-    const confirmed = window.confirm("Are you sure you want to permanently delete this report?");
-    if (!confirmed) return;
-
-    try {
-      await itemService.deleteItem(itemId);
-      setSuccess("Report deleted successfully by admin.");
-      setItems((prev) => prev.filter((item) => item._id !== itemId));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete item.");
-    }
+  // Admin deletes any report via ConfirmationModal
+  const handleDeleteItem = (itemId) => {
+    setModalConfig({
+      isOpen: true,
+      title: "Delete Report",
+      message: "Are you sure you want to permanently delete this report? This action cannot be undone.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        try {
+          setModalLoading(true);
+          await itemService.deleteItem(itemId);
+          setSuccess("Report deleted successfully by admin.");
+          setItems((prev) => prev.filter((item) => item._id !== itemId));
+        } catch (err) {
+          setError(err.response?.data?.message || "Failed to delete item.");
+        } finally {
+          setModalLoading(false);
+          closeModal();
+        }
+      },
+    });
   };
 
-  // Admin deactivates a user
-  const handleDeactivateUser = async (userId) => {
-    const confirmed = window.confirm("Are you sure you want to deactivate this user account?");
-    if (!confirmed) return;
-
-    try {
-      const res = await adminService.deactivateUser(userId);
-      setSuccess(res.message || "User deactivated successfully.");
-      setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, isActive: false } : u))
-      );
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to deactivate user.");
-    }
+  // Admin deactivates a user via ConfirmationModal
+  const handleDeactivateUser = (userId) => {
+    setModalConfig({
+      isOpen: true,
+      title: "Deactivate User",
+      message: "Are you sure you want to deactivate this user account? The user will be blocked from logging in.",
+      confirmText: "Deactivate",
+      confirmVariant: "danger",
+      onConfirm: async () => {
+        try {
+          setModalLoading(true);
+          const res = await adminService.deactivateUser(userId);
+          setSuccess(res.message || "User deactivated successfully.");
+          setUsers((prev) =>
+            prev.map((u) => (u._id === userId ? { ...u, isActive: false } : u))
+          );
+        } catch (err) {
+          setError(err.response?.data?.message || "Failed to deactivate user.");
+        } finally {
+          setModalLoading(false);
+          closeModal();
+        }
+      },
+    });
   };
 
-  // Admin re-activates a user
-  const handleActivateUser = async (userId) => {
-    const confirmed = window.confirm("Are you sure you want to re-activate this user account?");
-    if (!confirmed) return;
-
-    try {
-      const res = await adminService.activateUser(userId);
-      setSuccess(res.message || "User activated successfully.");
-      setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, isActive: true } : u))
-      );
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to activate user.");
-    }
+  // Admin re-activates a user via ConfirmationModal
+  const handleActivateUser = (userId) => {
+    setModalConfig({
+      isOpen: true,
+      title: "Activate User",
+      message: "Are you sure you want to re-activate this user account? The user will be able to log in immediately.",
+      confirmText: "Activate",
+      confirmVariant: "primary",
+      onConfirm: async () => {
+        try {
+          setModalLoading(true);
+          const res = await adminService.activateUser(userId);
+          setSuccess(res.message || "User activated successfully.");
+          setUsers((prev) =>
+            prev.map((u) => (u._id === userId ? { ...u, isActive: true } : u))
+          );
+        } catch (err) {
+          setError(err.response?.data?.message || "Failed to activate user.");
+        } finally {
+          setModalLoading(false);
+          closeModal();
+        }
+      },
+    });
   };
 
   if (loading) return <Loader text="Loading administrator panel..." />;
@@ -140,16 +181,18 @@ export default function Admin() {
                       <strong>{item.title}</strong>
                     </td>
                     <td>
-                      <span className={`badge ${item.type === ITEM_TYPES.LOST ? "badge-lost" : "badge-found"}`}>
-                        {item.type}
-                      </span>
+                      <Badge
+                        variant={item.type === ITEM_TYPES.LOST ? "lost" : "found"}
+                        label={item.type}
+                      />
                     </td>
                     <td>{item.category}</td>
                     <td>{item.location}</td>
                     <td>
-                      <span className={`badge ${item.status === ITEM_STATUS.RETURNED ? "badge-returned" : "badge-open"}`}>
-                        {item.status}
-                      </span>
+                      <Badge
+                        variant={item.status === ITEM_STATUS.RETURNED ? "returned" : "open"}
+                        label={item.status}
+                      />
                     </td>
                     <td>{item.reportedBy ? `${item.reportedBy.name} (${item.reportedBy.email})` : "N/A"}</td>
                     <td>{formatDate(item.createdAt)}</td>
@@ -194,14 +237,10 @@ export default function Admin() {
                       </td>
                       <td>{u.email}</td>
                       <td>
-                        <span className={`badge ${u.role === USER_ROLES.ADMIN ? "badge-admin" : "badge-user"}`}>
-                          {u.role}
-                        </span>
+                        <Badge variant={u.role === USER_ROLES.ADMIN ? "admin" : "user"} />
                       </td>
                       <td>
-                        <span className={`badge ${u.isActive ? "badge-active" : "badge-inactive"}`}>
-                          {u.isActive ? "Active" : "Deactivated"}
-                        </span>
+                        <Badge variant={u.isActive ? "active" : "inactive"} />
                       </td>
                       <td>{formatDate(u.createdAt)}</td>
                       <td>
@@ -231,6 +270,18 @@ export default function Admin() {
           </div>
         </section>
       )}
+
+      {/* Reusable Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        confirmVariant={modalConfig.confirmVariant}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={closeModal}
+        loading={modalLoading}
+      />
     </div>
   );
 }

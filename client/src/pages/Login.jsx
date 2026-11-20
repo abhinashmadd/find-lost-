@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Alert from "../components/Alert";
+import { Alert, FormField } from "../components";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,37 +51,27 @@ export default function Login() {
         {error && <Alert type="error" message={error} onClose={() => setError("")} />}
 
         <form onSubmit={handleSubmit} className="form-body">
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">
-              College Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="e.g., student@college.edu"
-              required
-              className="form-input"
-            />
-          </div>
+          <FormField
+            id="email"
+            name="email"
+            type="email"
+            label="College Email Address"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="e.g., student@college.edu"
+            required={true}
+          />
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-              className="form-input"
-            />
-          </div>
+          <FormField
+            id="password"
+            name="password"
+            type="password"
+            label="Password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter your password"
+            required={true}
+          />
 
           <button type="submit" disabled={loading} className="btn btn-submit">
             {loading ? "Logging In..." : "Log In"}

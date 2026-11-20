@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Badge from "./Badge";
 import { ITEM_TYPES } from "../constants";
 import { PLACEHOLDER_ITEM_IMAGE } from "../constants/assets";
 import { formatDate } from "../utils/formatters";
@@ -21,9 +22,11 @@ export default function ItemCard({ item }) {
             e.target.src = PLACEHOLDER_ITEM_IMAGE;
           }}
         />
-        <span className={`badge ${isLost ? "badge-lost" : "badge-found"}`}>
-          {isLost ? "Lost" : "Found"}
-        </span>
+        <Badge
+          variant={isLost ? "lost" : "found"}
+          label={isLost ? "Lost" : "Found"}
+          isCardBadge={true}
+        />
       </div>
 
       <div className="card-body">

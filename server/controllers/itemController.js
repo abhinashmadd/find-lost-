@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Item = require("../models/Item");
 const AppError = require("../utils/appError");
 const asyncHandler = require("../middleware/asyncHandler");
@@ -37,10 +36,6 @@ exports.listItems = asyncHandler(async (req, res, next) => {
 
 // GET /api/items/:id (public) - Get single item details
 exports.getItemById = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid item ID format", 400));
-  }
-
   const item = await Item.findById(req.params.id).populate("reportedBy", "name");
   if (!item) {
     return next(new AppError("Item not found", 404));
@@ -52,14 +47,6 @@ exports.getItemById = asyncHandler(async (req, res, next) => {
 // POST /api/items (protect, with image upload) - Create a new item report
 exports.createItem = asyncHandler(async (req, res, next) => {
   const { type, title, description, category, location, dateOfEvent } = req.body;
-
-  if (!type || !title || !description || !category || !location || !dateOfEvent) {
-    return next(new AppError("All required fields must be provided", 400));
-  }
-
-  if (!["lost", "found"].includes(type)) {
-    return next(new AppError("Type must be either 'lost' or 'found'", 400));
-  }
 
   // Image URL from Cloudinary (path starting with http) or local static fallback
   let imageUrl = "";
@@ -88,10 +75,6 @@ exports.createItem = asyncHandler(async (req, res, next) => {
 
 // PUT /api/items/:id (protect) - Update item details (owner only)
 exports.updateItem = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid item ID format", 400));
-  }
-
   const item = await Item.findById(req.params.id);
   if (!item) {
     return next(new AppError("Item not found", 404));
@@ -119,10 +102,6 @@ exports.updateItem = asyncHandler(async (req, res, next) => {
 
 // DELETE /api/items/:id (protect) - Delete an item (owner or admin)
 exports.deleteItem = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid item ID format", 400));
-  }
-
   const item = await Item.findById(req.params.id);
   if (!item) {
     return next(new AppError("Item not found", 404));

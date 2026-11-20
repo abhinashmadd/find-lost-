@@ -42,3 +42,30 @@ This document records every major technical decision, its context, justification
 - **Decision**: Created `server/config/env.js` and `client/src/config/env.js` as single sources of truth. Validated configuration at process startup, enforced strict production warnings if default secrets are detected, parsed typed configuration values, and comprehensively documented all environment parameters in root, server, and client `.env.example` templates.
 - **Impact**: Eliminates scattered environment variables, ensures 12-factor application compliance, and prevents silent insecure defaults in production.
 
+#### DEC-007: Modular UI Component Library & Accessible Modal Architecture
+- **Date**: 2026-11-19
+- **Context**: UI elements including status badges, destructive action prompts (`window.confirm`), empty list placeholders, and form inputs were implemented inline across views with inconsistent styles, non-accessible browser alerts, and code duplication.
+- **Decision**: Modularized reusable presentation components: `Badge` (variant-based status/type indicators), `ConfirmationModal` (accessible dialog with Escape key and backdrop dismissal, eliminating blocking `window.confirm`), `EmptyState` (standardized empty listing/claim placeholders with action buttons), and `FormField` (accessible input wrapper). Exported via a central barrel `client/src/components/index.js` and styled according to Phase 3 brand rules.
+- **Impact**: Eliminates duplicated UI markup, improves WCAG accessibility and keyboard navigation, removes blocking browser dialogs, and prepares the frontend for automated end-to-end testing.
+
+#### DEC-008: Global State Management Architecture (Toast, Theme, Enhanced Auth)
+- **Date**: 2026-11-20
+- **Context**: State management across the client application was fragmented. Feedback messages were stored locally inside individual view states, disappearing on route navigation and requiring duplicate banner markup. Theme preferences lacked persistent global synchronization with the DOM, and authentication state relied on basic user/token state without multi-tab synchronization or standardized profile refreshing.
+- **Decision**: Implemented a unified global state architecture using React Context:
+  1. `ToastContext`: Global notification dispatcher (`showSuccess`, `showError`, `showInfo`) rendering fixed accessible notifications that persist across route transitions with auto-dismiss timers and accessible SVG icons.
+  2. `ThemeContext`: Persistent theme state synchronized with `localStorage` and `document.documentElement`'s `data-theme` attribute, with OS system color-scheme listener support.
+  3. `AuthContext`: Enhanced with computed flags (`isAuthenticated`, `isAdmin`), `refreshUser()` profile fetcher, and cross-tab session synchronization via window `storage` events.
+  4. Unified barrel export `client/src/context/index.js` and composed top-level providers in `App.jsx`.
+- **Impact**: Enables seamless global feedback notifications across route changes, provides synchronized multi-tab session management, establishes theme infrastructure, and centralizes state without introducing heavy external dependencies.
+
+#### DEC-009: Scalable API Architecture & Validation Layer
+- **Date**: 2026-11-20
+- **Context**: Backend routes were mounted directly in `server.js` without an aggregator or versioning capability. Request validation was fragmented: inline `express-validator` checks in auth routes, repetitive `ObjectId.isValid` validation duplicated across 6 controller handlers, and controllers intermixed parameter validation with database operations.
+- **Decision**: Restructured the backend API architecture for scalability, modularity, and backward compatibility:
+  1. Master API Router (`server/routes/index.js`): Aggregates domain sub-routers (`/auth`, `/items`, `/claims`, `/admin`) and `/health`, mounted at both `/api` and `/api/v1` in `server.js` for backward-compatible versioning.
+  2. Dedicated Validation Layer (`server/validators/`): Extracted declarative rule chains (`authValidator`, `itemValidator`, `claimValidator`, `paramValidator`) and standard `validate` middleware that automatically forwards validation errors as operational `AppError(msg, 400)` to Express's global error handler.
+  3. Controller Decoupling: Replaced duplicate `ObjectId.isValid` checks in controllers with `validateMongoId` route middleware, keeping controllers lean and focused solely on business operations.
+- **Impact**: Enables clean multi-version routing (`/api` and `/api/v1`), eliminates repetitive validation boilerplate across controllers, standardizes 400 error responses, and guarantees 100% backward compatibility with existing client services and test cases.
+
+
+

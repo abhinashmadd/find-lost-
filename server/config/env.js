@@ -62,3 +62,4 @@ const config = Object.freeze({
 });
 
 module.exports = config;
+

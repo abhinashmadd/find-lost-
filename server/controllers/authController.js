@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
 const User = require("../models/User");
 const AppError = require("../utils/appError");
 const asyncHandler = require("../middleware/asyncHandler");
@@ -8,11 +7,6 @@ const config = require("../config/env");
 
 // Register a new user
 exports.register = asyncHandler(async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(new AppError(errors.array()[0].msg, 400));
-  }
-
   const { name, email, password, phone } = req.body;
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -47,11 +41,6 @@ exports.register = asyncHandler(async (req, res, next) => {
 
 // Log in an existing user
 exports.login = asyncHandler(async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(new AppError(errors.array()[0].msg, 400));
-  }
-
   const { email, password } = req.body;
   const normalizedEmail = email.toLowerCase().trim();
   const user = await User.findOne({ email: normalizedEmail });

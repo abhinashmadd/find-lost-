@@ -1,33 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { check } = require("express-validator");
 const { register, login, getMe } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 const { loginLimiter } = require("../middleware/rateLimiter");
+const { registerRules, loginRules } = require("../validators");
 
-// POST /api/auth/register
-router.post(
-  "/register",
-  [
-    check("name", "Name is required").notEmpty().trim(),
-    check("email", "Please provide a valid email").isEmail(),
-    check("password", "Password must be at least 8 characters").isLength({ min: 8 }),
-  ],
-  register
-);
+// POST /api/auth/register - Register a new user account
+router.post("/register", registerRules, register);
 
-// POST /api/auth/login
-router.post(
-  "/login",
-  loginLimiter,
-  [
-    check("email", "Please provide a valid email").isEmail(),
-    check("password", "Password is required").notEmpty(),
-  ],
-  login
-);
+// POST /api/auth/login - Authenticate existing user and return JWT
+router.post("/login", loginLimiter, loginRules, login);
 
-// GET /api/auth/me
+// GET /api/auth/me - Retrieve current logged-in user profile
 router.get("/me", protect, getMe);
 
 module.exports = router;

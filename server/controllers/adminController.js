@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const User = require("../models/User");
 const Item = require("../models/Item");
 const AppError = require("../utils/appError");
@@ -12,10 +11,6 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
 
 // PATCH /api/admin/users/:id/deactivate - Deactivate a user account
 exports.deactivateUser = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid user ID format", 400));
-  }
-
   // Rule: Admins cannot deactivate their own account
   if (req.params.id === req.user.id) {
     return next(new AppError("Admins cannot deactivate their own account", 400));
@@ -47,10 +42,6 @@ exports.deactivateUser = asyncHandler(async (req, res, next) => {
 
 // PATCH /api/admin/users/:id/activate - Re-activate a deactivated user account
 exports.activateUser = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid user ID format", 400));
-  }
-
   const user = await User.findById(req.params.id);
   if (!user) {
     return next(new AppError("User not found", 404));

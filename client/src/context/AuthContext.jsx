@@ -63,8 +63,56 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Re-fetch current user profile
+  const refreshUser = async () => {
+    try {
+      const userData = await authService.getMe();
+      const normalized = normalizeUser(userData);
+      setUser(normalized);
+      return normalized;
+    } catch (err) {
+      logout();
+      return null;
+    }
+  };
+
+  // Synchronize authentication state across browser tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "token") {
+        if (!e.newValue) {
+          // Token removed in another tab -> log out in this tab
+          setToken(null);
+          setUser(null);
+        } else if (e.newValue !== token) {
+          // Token updated in another tab -> re-sync session
+          setToken(e.newValue);
+          authService.getMe().then((data) => setUser(normalizeUser(data))).catch(logout);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [token]);
+
+  const isAuthenticated = Boolean(user && token);
+  const isAdmin = Boolean(user?.role === "admin");
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        isAuthenticated,
+        isAdmin,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

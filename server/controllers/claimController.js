@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Claim = require("../models/Claim");
 const Item = require("../models/Item");
 const AppError = require("../utils/appError");
@@ -6,14 +5,7 @@ const asyncHandler = require("../middleware/asyncHandler");
 
 // POST /api/items/:id/claims (protect) - Submit an ownership claim for an item
 exports.createClaim = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid item ID format", 400));
-  }
-
   const { message, proofDetails } = req.body;
-  if (!message || !proofDetails) {
-    return next(new AppError("Message and proof details are required", 400));
-  }
 
   const item = await Item.findById(req.params.id);
   if (!item) {
@@ -83,14 +75,7 @@ exports.getMyClaims = asyncHandler(async (req, res, next) => {
 
 // PATCH /api/claims/:id (protect) - Approve or reject a claim
 exports.decideClaim = asyncHandler(async (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return next(new AppError("Invalid claim ID format", 400));
-  }
-
   const { decision } = req.body;
-  if (!decision || !["approved", "rejected"].includes(decision)) {
-    return next(new AppError("Decision must be either 'approved' or 'rejected'", 400));
-  }
 
   const claim = await Claim.findById(req.params.id).populate("item");
   if (!claim) {
