@@ -58,4 +58,14 @@ This document records every major technical decision, its context, justification
   4. Unified barrel export `client/src/context/index.js` and composed top-level providers in `App.jsx`.
 - **Impact**: Enables seamless global feedback notifications across route changes, provides synchronized multi-tab session management, establishes theme infrastructure, and centralizes state without introducing heavy external dependencies.
 
+#### DEC-009: Scalable API Architecture & Validation Layer
+- **Date**: 2026-11-20
+- **Context**: Backend routes were mounted directly in `server.js` without an aggregator or versioning capability. Request validation was fragmented: inline `express-validator` checks in auth routes, repetitive `ObjectId.isValid` validation duplicated across 6 controller handlers, and controllers intermixed parameter validation with database operations.
+- **Decision**: Restructured the backend API architecture for scalability, modularity, and backward compatibility:
+  1. Master API Router (`server/routes/index.js`): Aggregates domain sub-routers (`/auth`, `/items`, `/claims`, `/admin`) and `/health`, mounted at both `/api` and `/api/v1` in `server.js` for backward-compatible versioning.
+  2. Dedicated Validation Layer (`server/validators/`): Extracted declarative rule chains (`authValidator`, `itemValidator`, `claimValidator`, `paramValidator`) and standard `validate` middleware that automatically forwards validation errors as operational `AppError(msg, 400)` to Express's global error handler.
+  3. Controller Decoupling: Replaced duplicate `ObjectId.isValid` checks in controllers with `validateMongoId` route middleware, keeping controllers lean and focused solely on business operations.
+- **Impact**: Enables clean multi-version routing (`/api` and `/api/v1`), eliminates repetitive validation boilerplate across controllers, standardizes 400 error responses, and guarantees 100% backward compatibility with existing client services and test cases.
+
+
 

@@ -34,16 +34,10 @@ app.use(express.json());
 // Serve static uploaded photos for local fallback
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
-// Health check endpoint
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "Server is healthy" });
-});
-
-// Mount API routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/items", require("./routes/items"));
-app.use("/api/claims", require("./routes/claims"));
-app.use("/api/admin", require("./routes/admin"));
+// Mount central API router (supports both /api and /api/v1 for seamless versioning)
+const apiRouter = require("./routes");
+app.use("/api/v1", apiRouter);
+app.use("/api", apiRouter);
 
 // Serve static client build if available (production full-stack deployment)
 const clientDistPath = path.join(__dirname, "../client/dist");
